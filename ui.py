@@ -61,6 +61,8 @@ class App(ctk.CTk):
         self.login_button.grid(row=3, column=0,
                                pady=(15, 15), padx=30)
         self.login_button.grid_rowconfigure(3, weight=1)
+
+        self.bind('<Return>', lambda event: self.login_button.invoke())
         # create main frame
         self.main_frame = ctk.CTkFrame(
             self, corner_radius=0, width=1300, height=800)
@@ -134,6 +136,7 @@ class App(ctk.CTk):
             entry1.grid_rowconfigure(1, weight=1)
             send_otp_button = ctk.CTkButton(
                 top1, text="Verify", height=46, command=lambda: self.verify_OTP(top1, entry1), width=300, font=('Calibri', 25, 'bold'), anchor='center')
+            top1.bind('<Return>', lambda event: send_otp_button.invoke())
             send_otp_button.grid(row=2, column=0, padx=20, pady=(7, 7))
             send_otp_button.grid_rowconfigure(2, weight=1)
 
@@ -160,6 +163,7 @@ class App(ctk.CTk):
         entry.grid_rowconfigure(1, weight=1)
         send_mail_button = ctk.CTkButton(
             top, text="Send code", height=46, command=lambda: self.verify_window_for_OTP(entry, top, text="Enter your OTP code", placeholder_text="OTP code"), width=300, font=('Calibri', 25, 'bold'), anchor='center')
+        top.bind('<Return>', lambda event: send_mail_button.invoke())
         send_mail_button.grid(row=2, column=0, padx=20, pady=(7, 7))
         send_mail_button.grid_rowconfigure(2, weight=1)
 
