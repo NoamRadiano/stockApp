@@ -31,19 +31,18 @@ class TwelveData:
             self.data = data
         except:
             print(f"Could not get data for the specific url: {self.url}\n")
-            response.raise_for_status()
 
     def max_diffrence_in_interval(self):
         for data_for_min in self.data["values"]:
-            max_difference = 0
+            self.max_difference = 0
             open_in_float = float(data_for_min["open"])
             close_in_float = float(data_for_min["close"])
-            if (abs(open_in_float - close_in_float) > max_difference):
-                max_difference = open_in_float - close_in_float
-                at_time = data_for_min["datetime"].split(" ")[1]
+            if (abs(open_in_float - close_in_float) > self.max_difference):
+                self.max_difference = open_in_float - close_in_float
+                self.at_time = data_for_min["datetime"].split(" ")[1]
 
         return {
             "interval": self.data["meta"]["interval"],
-            "max_difference": round(max_difference, 2),
-            "at_time": at_time,
+            "max_difference": round(self.max_difference, 2),
+            "at_time": self.at_time,
         }

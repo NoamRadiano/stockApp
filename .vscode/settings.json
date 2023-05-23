@@ -3,6 +3,7 @@
     "Abutoon",
     "apikey",
     "beforeyesterday",
+    "Calibri",
     "columnspan",
     "CTkButton",
     "customtkinter",
@@ -12,12 +13,15 @@
     "iterrows",
     "Iwant",
     "marketsummery",
+    "matplotlib",
     "outputsize",
     "padx",
     "pady",
     "rapidapi",
     "relx",
+    "stockname",
     "textvariable",
     "TSLA"
-  ]
+  ],
+  "python.analysis.typeCheckingMode": "basic"
 }
