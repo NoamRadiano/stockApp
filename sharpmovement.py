@@ -44,7 +44,7 @@ class SharpMovement:
                     {'beforeyesterdayString': index.strftime('%Y-%m-%d')})
             count += 1
         if (len(actual_dates) == 1):  # can't calculate if day before wasn't trading
-            raise ("Could not find sharp movement, a day without trading")
+            print("Could not find sharp movement, a day without trading")
             exit()
         alpha_request = requests.get(self.alpha_url_api)
         alpha_request.raise_for_status()

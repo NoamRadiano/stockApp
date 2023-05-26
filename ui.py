@@ -1,15 +1,19 @@
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 import customtkinter as ctk
+import tkinter as tk
 import os
-import time
+import pandas as pd
+import numpy as np
 from dotenv import load_dotenv
 from pathlib import Path
 from tkinter import messagebox
 import math
 import random
-from PIL import Image
 import smtplib
 import yahooFinance
-from colorama import Fore, Back, Style
 import datetime as dt
 import twelve_data
 
@@ -31,9 +35,6 @@ STOCK_SYMBOL = ""
 class App(ctk.CTk):
     def __init__(self, *args, **kwargs):
         self.current_datetime = dt.datetime.now()
-        self.current_date = self.current_datetime.strftime("%d/%m/%Y")
-        self.current_time = self.current_datetime.strftime("%H:%M:%S")
-        self.start_time = time.time()
         self.data_market = []
         super().__init__(*args, **kwargs)
         self.title("StockApp")
@@ -41,9 +42,34 @@ class App(ctk.CTk):
             f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
+        ##
+        # menu bar
+        menu_bar = tk.Menu(self, font=ctk.CTkFont(
+            'Calibri', 22), )
+        m1 = tk.Menu(menu_bar, tearoff=0, font=ctk.CTkFont(
+            'Calibri', 22), )
+        menu_bar.add_cascade(label="File", menu=m1)
+        m1.add_command(label="Open File",)
+        m1.add_command(label="Save File",)
+
+        m2 = tk.Menu(menu_bar, tearoff=0, font=ctk.CTkFont(
+            'Calibri', 22), )
+        menu_bar.add_cascade(label="Setting", menu=m2)
+        m2.add_command(label="Light theme",)
+        m2.add_command(label="System theme",)
+
+        m3 = tk.Menu(menu_bar, tearoff=0, font=ctk.CTkFont(
+            'Calibri', 22), )
+        menu_bar.add_cascade(label="Help", menu=m3)
+        m3.add_command(label="help!")
+        self.config(menu=menu_bar)
         ###
-        #
-        # # create login frame
+        ###
+
+        ##
+        ##
+        ##
+        # create login frame
         login_height = self.winfo_screenheight() - 200
         login_width = self.winfo_screenwidth() - 200
         self.grid_columnconfigure(0, weight=1)
@@ -99,8 +125,12 @@ class App(ctk.CTk):
             STOCK_SYMBOL, interval=self.interval_value, outputsize=self.output_size_value)
         if (self.result_function == "max diffrence"):
             self.function_data = self.twelve_data.max_diffrence_in_interval()
-        interval_string = self.function_data["interval"][:1] + \
-            " " + self.function_data["interval"][1:]
+        if (self.function_data["interval"] == "15min" or self.function_data["interval"] == "30min" or self.function_data["interval"] == "45min"):
+            interval_string = self.function_data["interval"][:2] + \
+                " " + self.function_data["interval"][2:]
+        else:
+            interval_string = self.function_data["interval"][:1] + \
+                " " + self.function_data["interval"][1:]
         self.results_textbox.insert(
             '1.0', f'Stock symbol is: {STOCK_SYMBOL}\n')
         self.results_textbox.insert(
@@ -112,6 +142,8 @@ class App(ctk.CTk):
         self.results_textbox.configure(state="disabled")
 
     def textbox_data(self):
+        self.current_date = self.current_datetime.strftime("%d/%m/%Y")
+        self.current_time = self.current_datetime.strftime("%H:%M:%S")
         self.stock_indexes_textbox.tag_config("tag_name", justify='center')
         self.stock_indexes_textbox.configure(state="normal")
         data = yahooFinance.YahooScraping(URL_TO_SCRAPE)
@@ -121,7 +153,7 @@ class App(ctk.CTk):
                 self.data_market.clear()
             for market in marketsummery:
                 self.data_market.append(
-                    f'Data for {market["Data For"]}\nCurrent value is {market["Current value"]}\nPoints are {market["Point"]}({market["Percentage"]})\n\n')
+                    f'Data of {market["Data For"]}\nCurrent value is {market["Current value"]}\nPoints {market["Point"]} ({market["Percentage"]})\n\n')
         else:
             self.data_market.append("")
         self.stock_indexes_textbox.delete("1.0", "end")
@@ -152,7 +184,6 @@ class App(ctk.CTk):
             "Invalid input", "Your email is not exist.\nPlease try again.", parent=top)
 
     def mainPage(self):
-        ###
         # create main frame
         self.grid_columnconfigure((0, 1, 2), weight=1)  # type: ignore
         self.grid_rowconfigure((0, 1, 2), weight=1)  # type: ignore
@@ -182,9 +213,10 @@ class App(ctk.CTk):
         self.bind(
             '<Return>', lambda event: self.search_for_stock_button.invoke())
         self.stock_indexes_textbox = ctk.CTkTextbox(
-            self.first_frame, font=ctk.CTkFont('Calibri', 20, 'bold'), width=260, height=425, fg_color="transparent")
+            self.first_frame, font=ctk.CTkFont('Calibri', 20, 'bold'), width=265, height=425, corner_radius=25, border_width=6,)
         self.stock_indexes_textbox.grid(row=3, column=0, padx=(
             15, 15), pady=(30, 0), sticky="nsew")
+        self.textbox_data()
         ###
         self.appearance_mode_label = ctk.CTkLabel(
             self.first_frame, text="Appearance Mode", font=ctk.CTkFont('Calibri', 20, 'bold'), anchor="w")
@@ -246,11 +278,13 @@ class App(ctk.CTk):
             row=1, column=2, padx=10, pady=(0, 25))
         ####
         self.results_textbox = ctk.CTkTextbox(
-            self.variable_for_stock_frame, font=ctk.CTkFont('Calibri', 24, 'bold'), corner_radius=20, width=(self.winfo_screenwidth() // 5 * 2), height=440, border_color='#303A48', border_width=20, fg_color="transparent", border_spacing=10)
+            self.variable_for_stock_frame, font=ctk.CTkFont('Calibri', 24, 'bold'), corner_radius=25, border_width=6, border_spacing=10, width=(self.winfo_screenwidth() // 5 * 2), height=440)
         self.results_textbox.grid(row=2, column=0, columnspan=3, sticky="nsew")
         self.results_textbox.grid_columnconfigure(
             0, weight=1)  # result of query
         self.results_textbox.grid_rowconfigure(0, weight=1)
+        self.results_textbox.configure(state="disabled")
+        ###
         ###
         self.ib_textbox = ctk.CTkTextbox(
             self.second_frame, font=ctk.CTkFont('Calibri', 24, 'bold'), width=(self.winfo_screenwidth() // 5 * 2), fg_color="transparent")  # border_color="purple", border_width=2,
@@ -258,10 +292,76 @@ class App(ctk.CTk):
         self.ib_textbox.grid_columnconfigure(
             0, weight=1)  # result of query
         ###
+        ###
+        ###
+        # matplotlib frame
         self.graph_frame = ctk.CTkFrame(
             self.main_frame,  width=int((self.winfo_screenwidth() // 5 * 2.5)), height=self.winfo_screenheight(), )  # border_color="green", border_width=2
         self.graph_frame.grid(row=0, column=2, sticky="nsew")
-        self.textbox_data()
+        self.graph_frame.grid_rowconfigure(0, weight=1)
+        self.graph_frame.grid_columnconfigure(0, weight=1)
+
+        # plt.style.use('dark_background')
+        # figure = plt.figure(figsize=(int((self.winfo_screenwidth(
+        # ) // 5 * 2.5)) // 100, self.winfo_screenheight() // 100), dpi=100)
+        # canvas = FigureCanvasTkAgg(figure, self.graph_frame)
+        # canvas.draw()
+        # canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+        # canvas.get_tk_widget().configure(background='pink',
+        #                                  highlightcolor='red', highlightbackground='yellow')
+        # t = np.arange(0, 3, .01)
+        ##
+        ##
+        ##
+        # fig = Figure(figsize=(5, 3), dpi=100, facecolor='k')
+
+        # axes1 = fig.add_subplot(111)
+        # # axes1.axis('tight')
+        # axes1.autoscale(enable=True, axis='y', tight=True)
+        # axes1.plot(t, 2 * np.sin(2 * np.pi * t))
+        # # axes1.set_axis_bgcolor('k')
+        # axes1.set_facecolor('k')
+        # axes1.grid(color='w')
+
+        # for label in axes1.xaxis.get_ticklabels():
+        #     # label is a Text instance
+        #     label.set_color('w')
+        # for label in axes1.yaxis.get_ticklabels():
+        #     # label is a Text instance
+        #     label.set_color('w')
+        #     # label.set_rotation(45)
+        #     # label.set_fontsize(1)
+        # for line in axes1.yaxis.get_ticklines():
+        #     # line is a Line2D instance
+        #     line.set_color('w')
+        # for line in axes1.xaxis.get_ticklines():
+        #     # line is a Line2D instance
+        #     line.set_color('w')
+        #     # line.set_markersize(25)
+        #     # line.set_markeredgewidth(3)
+        # for line in axes1.xaxis.get_gridlines():
+        #     line.set_color('w')
+
+        # for line in axes1.yaxis.get_gridlines():
+        #     line.set_color('w')
+        #     line.set_markeredgewidth(8)
+        # axes1.yaxis.grid(color='w', linewidth=1)
+        # # axes1.set_xmargin(0.9)
+        # axes1.set_xlabel("Time(ns)")
+        # axes1.xaxis.label.set_color('w')
+        # axes1.set_ylabel("Amplitude(mV)")
+        # axes1.yaxis.label.set_color('w')
+        # axes1.xaxis.grid(color='w', linewidth=1)
+        # axes1.spines['bottom'].set_color('white')
+        # axes1.spines['top'].set_color('white')
+        # axes1.spines['left'].set_color('white')
+        # axes1.spines['right'].set_color('white')
+
+        # # A tk.DrawingArea.
+        # canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
+        # canvas.get_tk_widget().configure(bg='black')
+        # canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+        ##
 
     def verify_OTP(self, top1, entry1):
         global OTP
@@ -288,10 +388,13 @@ class App(ctk.CTk):
                 OTP += digits[math.floor(random.random()*10)]
             otp = OTP + " is your OTP"
             message = otp
-            s = smtplib.SMTP('smtp.gmail.com', 587)
-            s.starttls()
-            s.login("pookloko57@gmail.com", "cqkeutyeuvrqbyyc")
-            s.sendmail('&&&&&&', email_var, message)
+            try:
+                s = smtplib.SMTP('smtp.gmail.com', 587)
+                s.starttls()
+                s.login("pookloko57@gmail.com", "cqkeutyeuvrqbyyc")
+                s.sendmail('&&&&&&', email_var, message)
+            except:
+                print("Could not send OTP email")
             top.destroy()  # remove EMAIL frame
             top1 = ctk.CTkToplevel(self, )
             top1.title("Verify")
