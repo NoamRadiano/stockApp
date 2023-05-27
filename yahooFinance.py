@@ -76,7 +76,7 @@ class YahooScraping:
                 f'Data for {Fore.BLUE + market["Data For"] + Style.RESET_ALL}\nCurrent value is {Fore.YELLOW}{market["Current value"]}{Style.RESET_ALL}\nPoints are {market["Point"]} {Fore.WHITE + arrow_color}({market["Percentage"]}){Style.RESET_ALL}\n')
 
 
-def bringMeDataOfIndexes():
-    data = YahooScraping(URL_TO_SCRAPE)
-    marketsummery = data.get_market_summary()
-    data.market_summary_print(marketsummery)  # printing summary
+# def bringMeDataOfIndexes():
+#     data = YahooScraping(URL_TO_SCRAPE)
+#     marketsummery = data.get_market_summary()
+#     data.market_summary_print(marketsummery)  # printing summary

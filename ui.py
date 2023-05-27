@@ -42,40 +42,16 @@ class App(ctk.CTk):
             f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
-        ##
-        # menu bar
-        menu_bar = tk.Menu(self, font=ctk.CTkFont(
-            'Calibri', 22), )
-        m1 = tk.Menu(menu_bar, tearoff=0, font=ctk.CTkFont(
-            'Calibri', 22), )
-        menu_bar.add_cascade(label="File", menu=m1)
-        m1.add_command(label="Open File",)
-        m1.add_command(label="Save File",)
+        self.make_menubar()
+        self.make_main_page()
 
-        m2 = tk.Menu(menu_bar, tearoff=0, font=ctk.CTkFont(
-            'Calibri', 22), )
-        menu_bar.add_cascade(label="Setting", menu=m2)
-        m2.add_command(label="Light theme",)
-        m2.add_command(label="System theme",)
-
-        m3 = tk.Menu(menu_bar, tearoff=0, font=ctk.CTkFont(
-            'Calibri', 22), )
-        menu_bar.add_cascade(label="Help", menu=m3)
-        m3.add_command(label="help!")
-        self.config(menu=menu_bar)
-        ###
-        ###
-
-        ##
-        ##
-        ##
-        # create login frame
-        login_height = self.winfo_screenheight() - 200
-        login_width = self.winfo_screenwidth() - 200
+    def make_login_page(self):
+        self.login_height = self.winfo_screenheight() - 200
+        self.login_width = self.winfo_screenwidth() - 200
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0, 1, 2, 3), weight=1)
         self.login_frame = ctk.CTkFrame(
-            self, corner_radius=0,  height=login_height, width=login_width, fg_color="transparent")
+            self, corner_radius=0,  height=self.login_height, width=self.login_width, fg_color="transparent")
         self.login_frame.grid(row=0, column=0, sticky="sew")
         self.login_frame.grid_rowconfigure(
             0, weight=1)  # Make row 0 expandable
@@ -103,6 +79,27 @@ class App(ctk.CTk):
                                pady=(15, 15), padx=30)
         self.login_button.grid_rowconfigure(3, weight=1)
         self.bind('<Return>', lambda event: self.login_button.invoke())
+
+    def make_menubar(self):
+        self.menu_bar = tk.Menu(self, font=ctk.CTkFont(
+            'Calibri', 22), )
+        self.m1 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
+            'Calibri', 22), )
+        self.menu_bar.add_cascade(label="File", menu=self.m1)
+        self.m1.add_command(label="Open File",)
+        self.m1.add_command(label="Save File",)
+
+        self.m2 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
+            'Calibri', 22), )
+        self.menu_bar.add_cascade(label="Setting", menu=self.m2)
+        self.m2.add_command(label="Light theme",)
+        self.m2.add_command(label="System theme",)
+
+        self.m3 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
+            'Calibri', 22), )
+        self.menu_bar.add_cascade(label="Help", menu=self.m3)
+        self.m3.add_command(label="help!")
+        self.config(menu=self.menu_bar)
 
     def get_interval_value_event(self, interval_value: str):
         self.interval_value = interval_value.replace(" ", "")
@@ -183,7 +180,7 @@ class App(ctk.CTk):
         messagebox.showwarning(
             "Invalid input", "Your email is not exist.\nPlease try again.", parent=top)
 
-    def mainPage(self):
+    def make_main_page(self):
         # create main frame
         self.grid_columnconfigure((0, 1, 2), weight=1)  # type: ignore
         self.grid_rowconfigure((0, 1, 2), weight=1)  # type: ignore
@@ -239,14 +236,14 @@ class App(ctk.CTk):
         self.second_frame.grid(row=0, column=1, sticky="nsew")
         self.second_frame.grid_columnconfigure(0, weight=1)
         self.second_frame.grid_rowconfigure((0, 1), weight=1)  # type: ignore
-        ###
+
         self.variable_for_stock_frame = ctk.CTkFrame(
             self.second_frame,  width=(self.winfo_screenwidth() // 5 * 2), fg_color="transparent")  # border_color="orange", border_width=2
         self.variable_for_stock_frame.grid(row=0, column=0, sticky="nsew")
         self.variable_for_stock_frame.grid_columnconfigure(
             (0, 1, 2), weight=1)
         self.variable_for_stock_frame.grid_rowconfigure(2, weight=1)
-        ###
+
         self.interval_label = ctk.CTkLabel(
             self.variable_for_stock_frame, text="Interval", font=ctk.CTkFont('Calibri', 25, 'bold'))
         self.interval_label.grid(
@@ -256,7 +253,7 @@ class App(ctk.CTk):
             'Calibri', 20, 'bold'), command=self.get_interval_value_event, anchor='center')
         self.interval_optionmenu.grid(
             row=1, column=0, padx=10, pady=(0, 25))
-        ###
+
         self.output_size_label = ctk.CTkLabel(
             self.variable_for_stock_frame, text="Output Size", font=ctk.CTkFont('Calibri', 25, 'bold'))
         self.output_size_label.grid(
@@ -266,7 +263,7 @@ class App(ctk.CTk):
             'Calibri', 20, 'bold'), command=self.get_output_size_value_event, anchor='center')
         self.output_size_optionmenu.grid(
             row=1, column=1, padx=10, pady=(0, 25))
-        ###
+
         self.result_function_label = ctk.CTkLabel(
             self.variable_for_stock_frame, text="Result Function", font=ctk.CTkFont('Calibri', 25, 'bold'))
         self.result_function_label.grid(
@@ -276,7 +273,7 @@ class App(ctk.CTk):
             'Calibri', 20, 'bold'), command=self.get_result_function_event, anchor='center')
         self.result_function_optionmenu.grid(
             row=1, column=2, padx=10, pady=(0, 25))
-        ####
+
         self.results_textbox = ctk.CTkTextbox(
             self.variable_for_stock_frame, font=ctk.CTkFont('Calibri', 24, 'bold'), corner_radius=25, border_width=6, border_spacing=10, width=(self.winfo_screenwidth() // 5 * 2), height=440)
         self.results_textbox.grid(row=2, column=0, columnspan=3, sticky="nsew")
@@ -284,17 +281,14 @@ class App(ctk.CTk):
             0, weight=1)  # result of query
         self.results_textbox.grid_rowconfigure(0, weight=1)
         self.results_textbox.configure(state="disabled")
-        ###
-        ###
+
         self.ib_textbox = ctk.CTkTextbox(
             self.second_frame, font=ctk.CTkFont('Calibri', 24, 'bold'), width=(self.winfo_screenwidth() // 5 * 2), fg_color="transparent")  # border_color="purple", border_width=2,
         self.ib_textbox.grid(row=1, column=0, sticky="nsew")
         self.ib_textbox.grid_columnconfigure(
             0, weight=1)  # result of query
         ###
-        ###
-        ###
-        # matplotlib frame
+        # matplotlib frame (third frame)
         self.graph_frame = ctk.CTkFrame(
             self.main_frame,  width=int((self.winfo_screenwidth() // 5 * 2.5)), height=self.winfo_screenheight(), )  # border_color="green", border_width=2
         self.graph_frame.grid(row=0, column=2, sticky="nsew")
@@ -308,60 +302,7 @@ class App(ctk.CTk):
         # canvas.draw()
         # canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
         # canvas.get_tk_widget().configure(background='pink',
-        #                                  highlightcolor='red', highlightbackground='yellow')
-        # t = np.arange(0, 3, .01)
-        ##
-        ##
-        ##
-        # fig = Figure(figsize=(5, 3), dpi=100, facecolor='k')
-
-        # axes1 = fig.add_subplot(111)
-        # # axes1.axis('tight')
-        # axes1.autoscale(enable=True, axis='y', tight=True)
-        # axes1.plot(t, 2 * np.sin(2 * np.pi * t))
-        # # axes1.set_axis_bgcolor('k')
-        # axes1.set_facecolor('k')
-        # axes1.grid(color='w')
-
-        # for label in axes1.xaxis.get_ticklabels():
-        #     # label is a Text instance
-        #     label.set_color('w')
-        # for label in axes1.yaxis.get_ticklabels():
-        #     # label is a Text instance
-        #     label.set_color('w')
-        #     # label.set_rotation(45)
-        #     # label.set_fontsize(1)
-        # for line in axes1.yaxis.get_ticklines():
-        #     # line is a Line2D instance
-        #     line.set_color('w')
-        # for line in axes1.xaxis.get_ticklines():
-        #     # line is a Line2D instance
-        #     line.set_color('w')
-        #     # line.set_markersize(25)
-        #     # line.set_markeredgewidth(3)
-        # for line in axes1.xaxis.get_gridlines():
-        #     line.set_color('w')
-
-        # for line in axes1.yaxis.get_gridlines():
-        #     line.set_color('w')
-        #     line.set_markeredgewidth(8)
-        # axes1.yaxis.grid(color='w', linewidth=1)
-        # # axes1.set_xmargin(0.9)
-        # axes1.set_xlabel("Time(ns)")
-        # axes1.xaxis.label.set_color('w')
-        # axes1.set_ylabel("Amplitude(mV)")
-        # axes1.yaxis.label.set_color('w')
-        # axes1.xaxis.grid(color='w', linewidth=1)
-        # axes1.spines['bottom'].set_color('white')
-        # axes1.spines['top'].set_color('white')
-        # axes1.spines['left'].set_color('white')
-        # axes1.spines['right'].set_color('white')
-
-        # # A tk.DrawingArea.
-        # canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
-        # canvas.get_tk_widget().configure(bg='black')
-        # canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
-        ##
+        #                                  highlightcolor='red', highlightbackground='yellow'
 
     def verify_OTP(self, top1, entry1):
         global OTP
@@ -370,7 +311,7 @@ class App(ctk.CTk):
         if (MY_OTP == OTP):
             self.login_frame.grid_forget()
             top1.destroy()  # remove OTP frame
-            self.mainPage()
+            self.make_main_page()
         else:
             entry1.delete(0, 'end')
             MY_OTP = ""
@@ -457,6 +398,6 @@ class App(ctk.CTk):
             self.error_message_for_details()
 
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+# if __name__ == "__main__":
+#     app = App()
+#     app.mainloop()

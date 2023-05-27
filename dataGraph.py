@@ -14,6 +14,4 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class DataGraph():
     def __init__(self):
-
-
-hi = DataGraph()
+        pass
