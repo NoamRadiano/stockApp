@@ -1,5 +1,6 @@
 import requests
 import datetime as dt
+import numpy as np
 import pandas as pd
 import random
 import time
@@ -8,6 +9,10 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from pathlib import Path
 from colorama import Fore, Back, Style
+import yfinance as yf
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -23,7 +28,12 @@ class YahooScraping:
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',]
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
+            'Mozilla/5.0 (X11; CrOS x86_64 8172.45.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.64 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9',
+            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36',
+            'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1',]
         self.url = url
         try:
             user_agent = random.choice(self.user_agent_list)
@@ -75,8 +85,11 @@ class YahooScraping:
             print(
                 f'Data for {Fore.BLUE + market["Data For"] + Style.RESET_ALL}\nCurrent value is {Fore.YELLOW}{market["Current value"]}{Style.RESET_ALL}\nPoints are {market["Point"]} {Fore.WHITE + arrow_color}({market["Percentage"]}){Style.RESET_ALL}\n')
 
+        axes[0].plot([1, 2, 3], [2, 4, 6])
 
-# def bringMeDataOfIndexes():
-#     data = YahooScraping(URL_TO_SCRAPE)
-#     marketsummery = data.get_market_summary()
-#     data.market_summary_print(marketsummery)  # printing summary
+
+# stock = yf.Ticker("TSLA")
+# stock_history_data = stock.history(period="1y", interval="1d")
+# date = stock_history_data['Date']
+# close = stock_history_data['Close']
+# print(stock_history_data)

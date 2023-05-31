@@ -16,6 +16,8 @@ import smtplib
 import yahooFinance
 import datetime as dt
 import twelve_data
+import yfinance as yf
+
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -40,7 +42,7 @@ class App(ctk.CTk):
         self.title("StockApp")
         self.geometry(
             f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
-        ctk.set_appearance_mode("dark")
+        # ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
         self.make_menubar()
         self.make_main_page()
@@ -137,6 +139,53 @@ class App(ctk.CTk):
         self.results_textbox.insert(
             '1.0', f'Occurred on time: {self.function_data["at_time"]}\n')
         self.results_textbox.configure(state="disabled")
+        self.make_graphs()
+        self.build_ib_frame()
+
+    def make_graphs(self):
+        self.stock = yf.Ticker(STOCK_SYMBOL)
+        # change period and interval
+        self.stock_history_data = self.stock.history(
+            period="1y", interval="1d")
+        self.stock_history_data = self.stock_history_data.reset_index()
+        self.for_need = self.stock_history_data[['Date', 'Open']]
+        self.fig, self.axes = plt.subplots()
+        self.fig.set_figheight(5)
+        self.fig.set_figwidth(9)
+        self.fig.set_alpha(1)
+        self.fig.set_facecolor(color="#2E3033")
+        self.axes.plot(self.for_need['Date'], self.for_need['Open'],
+                       label=f"{STOCK_SYMBOL} Stock", alpha=1, lw=1, ls='-', marker='s', markersize=1, markeredgecolor="blue")
+        self.axes.set_xlabel('Dates', fontdict={
+                             'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+        self.axes.set_ylabel('Open Price', fontdict={
+                             'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+        self.axes.set_title(f'{STOCK_SYMBOL} Graph', fontdict={
+                            'name': 'Calibri', 'size': 14, 'weight': 'bold', })
+        self.axes.legend()
+        self.line = FigureCanvasTkAgg(self.fig, self.graph_frame)
+        self.line.get_tk_widget().grid(row=0, column=0, sticky="nsew",)
+        self.line.get_tk_widget().grid_columnconfigure(0, weight=1)
+        self.line.get_tk_widget().grid_rowconfigure(0, weight=1)
+
+        self.fig1, self.axes1 = plt.subplots()
+        self.fig1.set_figheight(5)
+        self.fig1.set_figwidth(9)
+        self.fig1.set_alpha(1)
+        self.fig1.set_facecolor(color="#2E3033")
+        self.axes1.bar(
+            self.for_need['Date'], self.for_need['Open'], edgecolor="white", label=f"{STOCK_SYMBOL} Stock", alpha=1)
+        self.axes1.set_xlabel(
+            'Dates', fontdict={'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+        self.axes1.set_ylabel('Open Price', fontdict={
+                              'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+        self.axes1.set_title(f'{STOCK_SYMBOL} Candles', fontdict={
+                             'name': 'Calibri', 'size': 14, 'weight': 'bold', })
+        self.axes1.legend()
+        self.chart = FigureCanvasTkAgg(self.fig1, self.graph_frame)
+        self.chart.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+        self.chart.get_tk_widget().grid_columnconfigure(0, weight=1)
+        self.chart.get_tk_widget().grid_rowconfigure(1, weight=1)
 
     def textbox_data(self):
         self.current_date = self.current_datetime.strftime("%d/%m/%Y")
@@ -185,7 +234,7 @@ class App(ctk.CTk):
         self.grid_columnconfigure((0, 1, 2), weight=1)  # type: ignore
         self.grid_rowconfigure((0, 1, 2), weight=1)  # type: ignore
         self.main_frame = ctk.CTkFrame(
-            self,)  # border_color="red", border_width=2
+            self, fg_color="#2E3033", bg_color="#2E3033")  # border_color="red", border_width=2
         # configure grid layout (3x3)
         self.main_frame.grid_columnconfigure((0, 2), weight=0)  # type: ignore
         self.main_frame.grid_columnconfigure((1), weight=1)
@@ -194,7 +243,7 @@ class App(ctk.CTk):
         ###
         # creating first frame
         self.first_frame = ctk.CTkFrame(
-            self.main_frame,  width=140, height=self.winfo_screenheight(),)  # border_color="pink", border_width=2
+            self.main_frame,  width=140, height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")  # border_color="pink", border_width=2
         self.first_frame.grid(row=0, column=0,  sticky="nsew")
         self.first_frame.grid_columnconfigure(0, weight=0)
         self.first_frame.grid_rowconfigure(4, weight=1)
@@ -232,10 +281,11 @@ class App(ctk.CTk):
         ###
         # creating second frame
         self.second_frame = ctk.CTkFrame(
-            self.main_frame,  width=(self.winfo_screenwidth() // 5 * 2), height=self.winfo_screenheight(),)  # border_color="blue", border_width=2
-        self.second_frame.grid(row=0, column=1, sticky="nsew")
-        self.second_frame.grid_columnconfigure(0, weight=1)
-        self.second_frame.grid_rowconfigure((0, 1), weight=1)  # type: ignore
+            self.main_frame,  width=(self.winfo_screenwidth() // 5 * 2), height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")  # border_color="blue", border_width=2
+        self.second_frame.grid(row=0, column=1, sticky="nsew", padx=15)
+        self.second_frame.grid_columnconfigure((0, 1), weight=1)
+        self.second_frame.grid_rowconfigure(
+            (0, 1, 2, 3, 4), weight=1)  # type: ignore
 
         self.variable_for_stock_frame = ctk.CTkFrame(
             self.second_frame,  width=(self.winfo_screenwidth() // 5 * 2), fg_color="transparent")  # border_color="orange", border_width=2
@@ -281,28 +331,77 @@ class App(ctk.CTk):
             0, weight=1)  # result of query
         self.results_textbox.grid_rowconfigure(0, weight=1)
         self.results_textbox.configure(state="disabled")
-
-        self.ib_textbox = ctk.CTkTextbox(
-            self.second_frame, font=ctk.CTkFont('Calibri', 24, 'bold'), width=(self.winfo_screenwidth() // 5 * 2), fg_color="transparent")  # border_color="purple", border_width=2,
-        self.ib_textbox.grid(row=1, column=0, sticky="nsew")
-        self.ib_textbox.grid_columnconfigure(
-            0, weight=1)  # result of query
+        ##
+        ##
         ###
         # matplotlib frame (third frame)
         self.graph_frame = ctk.CTkFrame(
-            self.main_frame,  width=int((self.winfo_screenwidth() // 5 * 2.5)), height=self.winfo_screenheight(), )  # border_color="green", border_width=2
+            self.main_frame,  width=int((self.winfo_screenwidth() // 5 * 2.5)), height=self.winfo_screenheight(), fg_color="#2E3033", bg_color="#2E3033")  # border_color="green", border_width=2
         self.graph_frame.grid(row=0, column=2, sticky="nsew")
-        self.graph_frame.grid_rowconfigure(0, weight=1)
+        self.graph_frame.grid_rowconfigure((0, 1), weight=1)
         self.graph_frame.grid_columnconfigure(0, weight=1)
+        ##
+        ##
+        plt.style.use('dark_background')
+        self.fig, self.axes = plt.subplots()
+        self.fig.set_figheight(5)
+        self.fig.set_figwidth(9)
+        self.fig.set_alpha(1)
+        self.fig.set_facecolor(color="#2E3033")
+        self.line = FigureCanvasTkAgg(self.fig, self.graph_frame)
+        self.line.get_tk_widget().grid(row=0, column=0, sticky="nsew",)
+        self.line.get_tk_widget().grid_columnconfigure(0, weight=1)
+        self.line.get_tk_widget().grid_rowconfigure(0, weight=1)
+        ##
+        ##
+        self.fig1, self.axes1 = plt.subplots()
+        self.fig1.set_figheight(5)
+        self.fig1.set_figwidth(9)
+        self.fig1.set_alpha(1)
+        self.fig1.set_facecolor(color="#2E3033")
+        self.chart = FigureCanvasTkAgg(self.fig1, self.graph_frame)
+        self.chart.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+        self.chart.get_tk_widget().grid_columnconfigure(0, weight=1)
+        self.chart.get_tk_widget().grid_rowconfigure(1, weight=1)
 
-        # plt.style.use('dark_background')
-        # figure = plt.figure(figsize=(int((self.winfo_screenwidth(
-        # ) // 5 * 2.5)) // 100, self.winfo_screenheight() // 100), dpi=100)
-        # canvas = FigureCanvasTkAgg(figure, self.graph_frame)
-        # canvas.draw()
-        # canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
-        # canvas.get_tk_widget().configure(background='pink',
-        #                                  highlightcolor='red', highlightbackground='yellow'
+    def build_ib_frame(self):
+        self.ib_label = ctk.CTkLabel(
+            self.second_frame, text=f"{STOCK_SYMBOL} Stock", font=ctk.CTkFont('Calibri', 24, 'bold'), width=(self.winfo_screenwidth() // 5 * 2), fg_color="transparent")  # border_color="purple", border_width=2,
+        self.ib_label.grid(row=1, column=0, sticky="nsew", pady=15)
+        self.ib_label.grid_columnconfigure(
+            0, weight=1)
+        ##
+        ##
+        self.ask_price_button = ctk.CTkButton(
+            self.second_frame, text=f"Ask Price: ", height=46, width=170, font=ctk.CTkFont('Calibri', 25, 'bold'))
+        self.ask_price_button.grid(row=2, column=0)
+        self.ask_price_button.grid_columnconfigure(
+            0, weight=1)
+        self.ask_price_button.configure(state="disabled")
+        ##
+        ##
+        self.frame_for_buy_and_sell = ctk.CTkFrame(
+            self.second_frame,  width=(self.winfo_screenwidth() // 5 * 2), fg_color="transparent")  # border_color="orange", border_width=2
+        self.frame_for_buy_and_sell.grid(row=3, column=0, sticky="nsew")
+        self.frame_for_buy_and_sell.grid_columnconfigure(
+            (0, 1), weight=1)
+        self.frame_for_buy_and_sell.grid_rowconfigure(0, weight=1)
+        ##
+        ##
+        self.sell_stock_button = ctk.CTkButton(
+            self.frame_for_buy_and_sell, text="Sell Stock", height=42, width=122, font=ctk.CTkFont('Calibri', 25, 'bold'))
+        self.sell_stock_button.grid(
+            row=0, column=0,)
+        self.sell_stock_button.grid_columnconfigure(
+            0, weight=1)
+        ##
+        ##
+        self.buy_stock_button = ctk.CTkButton(
+            self.frame_for_buy_and_sell, text="Buy Stock", height=42, width=122, font=ctk.CTkFont('Calibri', 25, 'bold'))
+        self.buy_stock_button.grid(
+            row=0, column=1)
+        self.buy_stock_button.grid_columnconfigure(
+            1, weight=1)
 
     def verify_OTP(self, top1, entry1):
         global OTP
