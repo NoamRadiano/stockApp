@@ -111,24 +111,124 @@ class App(ctk.CTk):
         self.grid_columnconfigure((0, 1), weight=1)  # type: ignore
         self.grid_rowconfigure((0, 1), weight=1)  # type: ignore
         self.second_main_frame = ctk.CTkFrame(
-            self, fg_color="#2E3033", bg_color="#2E3033")  # border_color="red", border_width=2
+            self, fg_color="black", bg_color="black")  # border_color="red", border_width=2
         # configure grid layout (2x2)
         self.second_main_frame.grid_columnconfigure((0, 1), weight=1)
         self.second_main_frame.grid_rowconfigure(
             (0, 1), weight=1)  # type: ignore
-        self.second_main_frame.grid(row=0, column=0)
+        self.second_main_frame.grid(row=0, column=0, sticky="nsew")
+        self.data_label_for_stock = ctk.CTkLabel(
+            self.second_main_frame, text=f"{STOCK_SYMBOL} Data", font=ctk.CTkFont('Calibri', 35, 'bold'), anchor='center')
+        self.data_label_for_stock.grid_columnconfigure(0, weight=1)
+        self.data_label_for_stock.grid_rowconfigure(0, weight=1)
+        self.data_label_for_stock.grid(
+            row=0, column=0, padx=20, pady=(21, 10), sticky="nsew", columnspan=2)
         ###
         # creating first frame
         self.first_frame_in_statistics_page = ctk.CTkFrame(
-            self.second_main_frame,  width=450, height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")  # border_color="pink", border_width=2
+            self.second_main_frame,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")  # border_color="pink", border_width=2
         self.first_frame_in_statistics_page.grid(
-            row=0, column=0,  sticky="nsew")
-        self.first_frame_in_statistics_page.grid_columnconfigure(0, weight=0)
-        self.first_frame_in_statistics_page.grid_rowconfigure(0, weight=0)
-        self.data_label_for_stock = ctk.CTkLabel(
-            self.first_frame_in_statistics_page, text=f"{STOCK_SYMBOL} Data", font=ctk.CTkFont('Calibri', 40, 'bold'))
-
-        self.data_label_for_stock.grid(row=0, column=0, padx=20, pady=(20, 10))
+            row=1, column=0)
+        self.first_frame_in_statistics_page.grid_columnconfigure(0, weight=1)
+        self.first_frame_in_statistics_page.grid_rowconfigure((0, 1), weight=1)
+        self.barplot_frame = ctk.CTkFrame(
+            self.first_frame_in_statistics_page,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")
+        self.barplot_frame.grid(row=0, column=0)
+        self.regplot_frame = ctk.CTkFrame(
+            self.first_frame_in_statistics_page,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")
+        self.regplot_frame.grid(row=1, column=0)
+        ##
+        ##
+        ###
+        # creating second frame
+        self.second_frame_in_statistics_page = ctk.CTkFrame(
+            self.second_main_frame,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")  # border_color="pink", border_width=2
+        self.second_frame_in_statistics_page.grid(
+            row=1, column=1)
+        self.second_frame_in_statistics_page.grid_columnconfigure(0, weight=1)
+        self.second_frame_in_statistics_page.grid_rowconfigure(
+            (0, 1), weight=1)
+        self.plot1_frame = ctk.CTkFrame(
+            self.second_frame_in_statistics_page,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")
+        self.plot1_frame.grid(row=0, column=0)
+        self.plot2_frame = ctk.CTkFrame(
+            self.second_frame_in_statistics_page,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")
+        self.plot2_frame.grid(row=1, column=0)
+        ##
+        ##
+        if (STOCK_SYMBOL != ""):
+            self.stock = yf.Ticker(STOCK_SYMBOL)
+            self.stock_history_data = self.stock.history(
+                period=self.period_value, interval=self.interval_value)
+            self.data_for_plots = self.stock_history_data.reset_index()
+            self.data_for_plots['Day'] = self.data_for_plots['Date'].dt.day_name(
+            )
+            ###
+            ###
+            self.fig2, self.axes2 = plt.subplots()
+            self.fig2.set_figheight(
+                4.69)
+            self.fig2.set_figwidth(10)
+            sns.barplot(x='Day', y='Close',
+                        data=self.data_for_plots, errorbar="sd", errcolor='limegreen')
+            self.barplot_line = FigureCanvasTkAgg(
+                self.fig2, self.barplot_frame)
+            self.barplot_line.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+            self.barplot_line.get_tk_widget().grid_columnconfigure(0, weight=0)
+            self.barplot_line.get_tk_widget().grid_rowconfigure(0, weight=0)
+            self.axes2.set_xlabel(
+                'Dates', fontdict={'size': 12, 'weight': 'bold', })
+            self.axes2.set_ylabel('Open Price', fontdict={
+                'size': 12, 'weight': 'bold', })
+            ##
+            ##
+            self.fig3, self.axes3 = plt.subplots()
+            self.fig3.set_figheight(
+                4.69)
+            self.fig3.set_figwidth(10)
+            sns.regplot(data=self.data_for_plots, x='Close', y='Open',)
+            self.regplot_line = FigureCanvasTkAgg(
+                self.fig3, self.regplot_frame)
+            self.regplot_line.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+            self.regplot_line.get_tk_widget().grid_columnconfigure(0, weight=0)
+            self.regplot_line.get_tk_widget().grid_rowconfigure(1, weight=0)
+            self.axes3.set_xlabel(
+                'Dates', fontdict={'size': 12, 'weight': 'bold', })
+            self.axes3.set_ylabel('Open Price', fontdict={
+                'size': 12, 'weight': 'bold', })
+            ##
+            ##
+            self.fig4, self.axes4 = plt.subplots()
+            self.fig4.set_figheight(
+                4.69)
+            self.fig4.set_figwidth(10)
+            sns.barplot(x='Day', y='Close',
+                        data=self.data_for_plots, errorbar="sd", errcolor='limegreen')
+            self.plot3_line = FigureCanvasTkAgg(
+                self.fig4, self.plot1_frame)
+            self.plot3_line.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+            self.plot3_line.get_tk_widget().grid_columnconfigure(0, weight=0)
+            self.plot3_line.get_tk_widget().grid_rowconfigure(0, weight=0)
+            self.axes4.set_xlabel(
+                'Dates', fontdict={'size': 12, 'weight': 'bold', })
+            self.axes4.set_ylabel('Open Price', fontdict={
+                'size': 12, 'weight': 'bold', })
+            ##
+            ##
+            self.fig5, self.axes5 = plt.subplots()
+            self.fig5.set_figheight(
+                4.69)
+            self.fig5.set_figwidth(10)
+            sns.regplot(data=self.data_for_plots, x='Close', y='Open',)
+            self.regplot_line = FigureCanvasTkAgg(
+                self.fig5, self.plot2_frame)
+            self.regplot_line.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+            self.regplot_line.get_tk_widget().grid_columnconfigure(0, weight=0)
+            self.regplot_line.get_tk_widget().grid_rowconfigure(1, weight=0)
+            self.axes5.set_xlabel(
+                'Dates', fontdict={'size': 12, 'weight': 'bold', })
+            self.axes5.set_ylabel('Open Price', fontdict={
+                'size': 12, 'weight': 'bold', })
 
     def open_statistics_graphs_label(self):
         self.main_frame.grid_forget()
