@@ -19,7 +19,6 @@ import twelve_data
 import yfinance as yf
 import seaborn as sns
 
-
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
 PASS1 = os.getenv('PASS1')
@@ -91,20 +90,53 @@ class App(ctk.CTk):
         self.m1 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
             'Calibri', 22), )
         self.menu_bar.add_cascade(label="File", menu=self.m1)
-        self.m1.add_command(label="Open File",)
-        self.m1.add_command(label="Save File",)
+        self.m1.add_command(label="Graphs", command=self.open_graph_label)
+        self.m1.add_command(label="Statistics Graphs",
+                            command=self.open_statistics_graphs_label)
 
-        self.m2 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
-            'Calibri', 22), )
-        self.menu_bar.add_cascade(label="Setting", menu=self.m2)
-        self.m2.add_command(label="Light theme",)
-        self.m2.add_command(label="System theme",)
+        # self.m2 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
+        #     'Calibri', 22), )
+        # self.menu_bar.add_cascade(label="Setting", menu=self.m2)
+        # self.m2.add_command(label="Light theme",)
+        # self.m2.add_command(label="System theme",)
 
-        self.m3 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
-            'Calibri', 22), )
-        self.menu_bar.add_cascade(label="Help", menu=self.m3)
-        self.m3.add_command(label="help!")
+        # self.m3 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
+        #     'Calibri', 22), )
+        # self.menu_bar.add_cascade(label="Help", menu=self.m3)
+        # self.m3.add_command(label="help!")
         self.config(menu=self.menu_bar)
+
+    def make_second_main_frame(self):
+        # create second main frame
+        self.grid_columnconfigure((0, 1), weight=1)  # type: ignore
+        self.grid_rowconfigure((0, 1), weight=1)  # type: ignore
+        self.second_main_frame = ctk.CTkFrame(
+            self, fg_color="#2E3033", bg_color="#2E3033")  # border_color="red", border_width=2
+        # configure grid layout (2x2)
+        self.second_main_frame.grid_columnconfigure((0, 1), weight=1)
+        self.second_main_frame.grid_rowconfigure(
+            (0, 1), weight=1)  # type: ignore
+        self.second_main_frame.grid(row=0, column=0)
+        ###
+        # creating first frame
+        self.first_frame_in_statistics_page = ctk.CTkFrame(
+            self.second_main_frame,  width=450, height=self.winfo_screenheight(), bg_color="#2E3033", fg_color="#2E3033")  # border_color="pink", border_width=2
+        self.first_frame_in_statistics_page.grid(
+            row=0, column=0,  sticky="nsew")
+        self.first_frame_in_statistics_page.grid_columnconfigure(0, weight=0)
+        self.first_frame_in_statistics_page.grid_rowconfigure(0, weight=0)
+        self.data_label_for_stock = ctk.CTkLabel(
+            self.first_frame_in_statistics_page, text=f"{STOCK_SYMBOL} Data", font=ctk.CTkFont('Calibri', 40, 'bold'))
+
+        self.data_label_for_stock.grid(row=0, column=0, padx=20, pady=(20, 10))
+
+    def open_statistics_graphs_label(self):
+        self.main_frame.grid_forget()
+        self.make_second_main_frame()
+
+    def open_graph_label(self):
+        self.second_main_frame.grid_forget()
+        self.main_frame.grid(row=0, column=0)
 
     def get_interval_value_event(self, interval_value: str):
         self.interval_value = interval_value.replace(" ", "")
@@ -157,7 +189,10 @@ class App(ctk.CTk):
         self.stock = yf.Ticker(STOCK_SYMBOL)
         self.stock_history_data = self.stock.history(
             period=self.period_value, interval=self.interval_value)
-        self.results_textbox.insert("0.0", self.stock_history_data.describe())
+        self.data_for_results_textbox = self.stock_history_data.drop(
+            ['Dividends', 'Stock Splits'], axis=1)
+        self.results_textbox.insert(
+            "0.0", self.data_for_results_textbox.describe().round(2))
         self.results_textbox.configure(state="disabled")
         self.make_graphs(self.stock_history_data)
         self.build_ib_frame()
