@@ -17,6 +17,7 @@ import yahooFinance
 import datetime as dt
 import twelve_data
 import yfinance as yf
+import seaborn as sns
 
 
 dotenv_path = Path('.env')
@@ -38,6 +39,8 @@ class App(ctk.CTk):
     def __init__(self, *args, **kwargs):
         self.current_datetime = dt.datetime.now()
         self.data_market = []
+        self.period_val_con = True
+        self.inter_val_con = True
         super().__init__(*args, **kwargs)
         self.title("StockApp")
         self.geometry(
@@ -106,62 +109,75 @@ class App(ctk.CTk):
     def get_interval_value_event(self, interval_value: str):
         self.interval_value = interval_value.replace(" ", "")
 
-    def get_output_size_value_event(self, output_size_value: str):
-        self.output_size_value = output_size_value
+    def get_period_value_event(self, period_value: str):
+        self.period_value = period_value.replace(" ", "")
 
     def get_result_function_event(self, result_function: str):
         self.result_function = result_function
 
-    def print_in_results_textbox(self, entry):
+    def print_results_and_build_graph_and_ibframe(self, entry):
         self.results_textbox.configure(state="normal")
         global STOCK_SYMBOL
         self.function_data = ""
         self.results_textbox.delete('1.0', 'end')
         STOCK_SYMBOL = entry.get()
         STOCK_SYMBOL = STOCK_SYMBOL.upper()
-        entry.delete(0, 'end')
-        self.twelve_data = twelve_data.TwelveData(
-            STOCK_SYMBOL, interval=self.interval_value, outputsize=self.output_size_value)
-        if (self.result_function == "max diffrence"):
-            self.function_data = self.twelve_data.max_diffrence_in_interval()
-        if (self.function_data["interval"] == "15min" or self.function_data["interval"] == "30min" or self.function_data["interval"] == "45min"):
-            interval_string = self.function_data["interval"][:2] + \
-                " " + self.function_data["interval"][2:]
-        else:
-            interval_string = self.function_data["interval"][:1] + \
-                " " + self.function_data["interval"][1:]
-        self.results_textbox.insert(
-            '1.0', f'Stock symbol is: {STOCK_SYMBOL}\n')
-        self.results_textbox.insert(
-            '1.0', f'Interval time: {interval_string}\n')
-        self.results_textbox.insert(
-            '1.0', f'Max diffrence is: {self.function_data["max_difference"]}\n')
-        self.results_textbox.insert(
-            '1.0', f'Occurred on time: {self.function_data["at_time"]}\n')
+        # entry.delete(0, 'end')
+        if (len(self.period_value) > 3):
+            if (self.period_value == "1day" or self.period_value == "5days" or self.period_value == "1year" or self.period_value == "2years" or self.period_value == "5years"):
+                self.period_value = self.period_value[:1] + \
+                    self.period_value[1:2]
+            elif (self.period_value == "1month" or self.period_value == "3months" or self.period_value == "6months"):
+                self.period_value = self.period_value[:1] + \
+                    self.period_value[1:3]
+            elif (self.period_value == "10years"):
+                self.period_value = self.period_value[:2] + \
+                    self.period_value[2:3]
+            elif (self.period_value == "Yeartodate"):
+                self.period_value = "ytd"
+            elif (self.period_value == "max"):
+                self.period_value = "max"
+            else:
+                pass
+        if (len(self.interval_value) > 3):
+            if (self.interval_value == "1min" or self.interval_value == "5min" or self.interval_value == "1hour" or self.interval_value == "1day" or self.interval_value == "5days"):
+                self.interval_value = self.interval_value[:1] + \
+                    self.interval_value[1:2]
+            elif (self.interval_value == "1month" or self.interval_value == "3months"):
+                self.interval_value = self.interval_value[:1] + \
+                    self.interval_value[1:3]
+            elif (self.interval_value == "15min" or self.interval_value == "30min"):
+                self.interval_value = self.interval_value[:2] + \
+                    self.interval_value[2:3]
+            elif (self.interval_value == "1week"):
+                self.interval_value = "1wk"
+            else:
+                pass
+
+        self.stock = yf.Ticker(STOCK_SYMBOL)
+        self.stock_history_data = self.stock.history(
+            period=self.period_value, interval=self.interval_value)
+        self.results_textbox.insert("0.0", self.stock_history_data.describe())
         self.results_textbox.configure(state="disabled")
-        self.make_graphs()
+        self.make_graphs(self.stock_history_data)
         self.build_ib_frame()
 
-    def make_graphs(self):
-        self.stock = yf.Ticker(STOCK_SYMBOL)
-        # change period and interval
-        self.stock_history_data = self.stock.history(
-            period="1y", interval="1d")
-        self.stock_history_data = self.stock_history_data.reset_index()
-        self.for_need = self.stock_history_data[['Date', 'Open']]
+    def make_graphs(self, stock_data):
+        self.candle_width = 0.9   # width of real body
+        self.candle_shadow_width = 0.05  # width of shadow
         self.fig, self.axes = plt.subplots()
         self.fig.set_figheight(5)
         self.fig.set_figwidth(9)
         self.fig.set_alpha(1)
         self.fig.set_facecolor(color="#2E3033")
-        self.axes.plot(self.for_need['Date'], self.for_need['Open'],
+        self.axes.plot(stock_data.index, stock_data['Open'],
                        label=f"{STOCK_SYMBOL} Stock", alpha=1, lw=1, ls='-', marker='s', markersize=1, markeredgecolor="blue")
         self.axes.set_xlabel('Dates', fontdict={
-                             'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+            'size': 12, 'weight': 'bold', })
         self.axes.set_ylabel('Open Price', fontdict={
-                             'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+            'size': 12, 'weight': 'bold', })
         self.axes.set_title(f'{STOCK_SYMBOL} Graph', fontdict={
-                            'name': 'Calibri', 'size': 14, 'weight': 'bold', })
+            'size': 14, 'weight': 'bold', })
         self.axes.legend()
         self.line = FigureCanvasTkAgg(self.fig, self.graph_frame)
         self.line.get_tk_widget().grid(row=0, column=0, sticky="nsew",)
@@ -173,15 +189,33 @@ class App(ctk.CTk):
         self.fig1.set_figwidth(9)
         self.fig1.set_alpha(1)
         self.fig1.set_facecolor(color="#2E3033")
-        self.axes1.bar(
-            self.for_need['Date'], self.for_need['Open'], edgecolor="white", label=f"{STOCK_SYMBOL} Stock", alpha=1)
+        # find the rows that are bullish
+        dfup = stock_data[stock_data['Close']
+                          >= stock_data['Open']]
+        # find the rows that are bearish
+        dfdown = stock_data[stock_data['Close']
+                            < stock_data['Open']]
+        # plot the bullish candle stick
+        self.axes1.bar(dfup.index, dfup['Close'] - dfup["Open"], self.candle_width,
+                       bottom=dfup["Open"], edgecolor='g', color='green')
+        self.axes1.bar(dfup.index, dfup['High'] - dfup['Close'], self.candle_shadow_width,
+                       bottom=dfup['Close'], edgecolor='g', color='green')
+        self.axes1.bar(dfup.index, dfup['Low'] - dfup["Open"], self.candle_shadow_width,
+                       bottom=dfup["Open"], edgecolor='g', color='green')
+        # plot the bearish candle stick
+        self.axes1.bar(dfdown.index, dfdown['Close'] - dfdown["Open"], self.candle_width,
+                       bottom=dfdown["Open"], edgecolor='r', color='red')
+        self.axes1.bar(dfdown.index, dfdown['High'] - dfdown["Open"], self.candle_shadow_width,
+                       bottom=dfdown["Open"], edgecolor='r', color='red')
+        self.axes1.bar(dfdown.index, dfdown['Low'] - dfdown['Close'], self.candle_shadow_width,
+                       bottom=dfdown['Close'], edgecolor='r', color='red')
         self.axes1.set_xlabel(
-            'Dates', fontdict={'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+            'Dates', fontdict={'size': 12, 'weight': 'bold', })
         self.axes1.set_ylabel('Open Price', fontdict={
-                              'name': 'Calibri', 'size': 12, 'weight': 'bold', })
+            'size': 12, 'weight': 'bold', })
         self.axes1.set_title(f'{STOCK_SYMBOL} Candles', fontdict={
-                             'name': 'Calibri', 'size': 14, 'weight': 'bold', })
-        self.axes1.legend()
+            'size': 14, 'weight': 'bold', })
+        # self.axes1.legend()
         self.chart = FigureCanvasTkAgg(self.fig1, self.graph_frame)
         self.chart.get_tk_widget().grid(row=1, column=0, sticky="nsew")
         self.chart.get_tk_widget().grid_columnconfigure(0, weight=1)
@@ -254,7 +288,7 @@ class App(ctk.CTk):
             self.first_frame, width=170, height=35, placeholder_text="Stock Symbol", font=ctk.CTkFont('Calibri', 21, 'bold'))
         self.stockname_entry.grid(row=1, column=0, padx=20)
         self.search_for_stock_button = ctk.CTkButton(
-            self.first_frame, text="Submit", height=37, width=170, font=ctk.CTkFont('Calibri', 25, 'bold'), command=lambda: self.print_in_results_textbox(entry=self.stockname_entry))
+            self.first_frame, text="Submit", height=37, width=170, font=ctk.CTkFont('Calibri', 25, 'bold'), command=lambda: self.print_results_and_build_graph_and_ibframe(entry=self.stockname_entry))
         self.search_for_stock_button.grid(row=2, column=0, padx=20, pady=10)
         self.bind(
             '<Return>', lambda event: self.search_for_stock_button.invoke())
@@ -298,28 +332,28 @@ class App(ctk.CTk):
             self.variable_for_stock_frame, text="Interval", font=ctk.CTkFont('Calibri', 25, 'bold'))
         self.interval_label.grid(
             row=0, column=0, padx=10, pady=(20, 10))
-        self.interval_value = "5min"
-        self.interval_optionmenu = ctk.CTkOptionMenu(self.variable_for_stock_frame, values=["1 min", "5 min", "15 min", "30 min", "45 min ", "1 hour", "2 hours", "4 hours", "1 day", "1 week", "1 month"], font=ctk.CTkFont(
+        self.interval_value = "1day"  # default value
+        # "1 min", "5 min", "15 min", "30 min", "1 hour",
+        self.interval_optionmenu = ctk.CTkOptionMenu(self.variable_for_stock_frame, values=["1 day", "5 days", "1 week", "1 month", "3 months"], font=ctk.CTkFont(
             'Calibri', 20, 'bold'), command=self.get_interval_value_event, anchor='center')
         self.interval_optionmenu.grid(
             row=1, column=0, padx=10, pady=(0, 25))
-
         self.output_size_label = ctk.CTkLabel(
-            self.variable_for_stock_frame, text="Output Size", font=ctk.CTkFont('Calibri', 25, 'bold'))
+            self.variable_for_stock_frame, text="Period", font=ctk.CTkFont('Calibri', 25, 'bold'))
         self.output_size_label.grid(
             row=0, column=1, padx=10, pady=(20, 10))
-        self.output_size_value = 100
-        self.output_size_optionmenu = ctk.CTkOptionMenu(self.variable_for_stock_frame, values=["20", "50", "100", "200", "300", "500", "1000", "2000", "3000", "4000", "5000"], font=ctk.CTkFont(
-            'Calibri', 20, 'bold'), command=self.get_output_size_value_event, anchor='center')
-        self.output_size_optionmenu.grid(
+        self.period_value = "5days"  # default value
+        # 1 day
+        self.period_size_optionmenu = ctk.CTkOptionMenu(self.variable_for_stock_frame, values=["5 days", "1 month", "3 months", "6 months", "1 year", "2 years", "5 years", "10 years", "Year to date", "max"], font=ctk.CTkFont(
+            'Calibri', 20, 'bold'), command=self.get_period_value_event, anchor='center')
+        self.period_size_optionmenu.grid(
             row=1, column=1, padx=10, pady=(0, 25))
 
         self.result_function_label = ctk.CTkLabel(
             self.variable_for_stock_frame, text="Result Function", font=ctk.CTkFont('Calibri', 25, 'bold'))
         self.result_function_label.grid(
             row=0, column=2, padx=10, pady=(20, 10))
-        self.result_function = "max diffrence"
-        self.result_function_optionmenu = ctk.CTkOptionMenu(self.variable_for_stock_frame, values=["max diffrence", "min diffrence", "function", "function", "function", "function", "function", "function"], font=ctk.CTkFont(
+        self.result_function_optionmenu = ctk.CTkOptionMenu(self.variable_for_stock_frame, values=["function", "function", "function", "function", "function", "function", "function", "function"], font=ctk.CTkFont(
             'Calibri', 20, 'bold'), command=self.get_result_function_event, anchor='center')
         self.result_function_optionmenu.grid(
             row=1, column=2, padx=10, pady=(0, 25))

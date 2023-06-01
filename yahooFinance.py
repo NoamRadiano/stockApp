@@ -13,6 +13,7 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import seaborn as sns
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -84,12 +85,3 @@ class YahooScraping:
 
             print(
                 f'Data for {Fore.BLUE + market["Data For"] + Style.RESET_ALL}\nCurrent value is {Fore.YELLOW}{market["Current value"]}{Style.RESET_ALL}\nPoints are {market["Point"]} {Fore.WHITE + arrow_color}({market["Percentage"]}){Style.RESET_ALL}\n')
-
-        axes[0].plot([1, 2, 3], [2, 4, 6])
-
-
-# stock = yf.Ticker("TSLA")
-# stock_history_data = stock.history(period="1y", interval="1d")
-# date = stock_history_data['Date']
-# close = stock_history_data['Close']
-# print(stock_history_data)
