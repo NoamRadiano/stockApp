@@ -46,8 +46,8 @@ class App(ctk.CTk):
             f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
         # ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
-        self.make_menubar()
-        self.make_main_page()
+        # self.make_menubar()
+        # self.make_main_page()
 
     def make_login_page(self):
         self.login_height = self.winfo_screenheight() - 200
@@ -167,10 +167,12 @@ class App(ctk.CTk):
             ###
             self.fig2, self.axes2 = plt.subplots()
             self.fig2.set_figheight(
-                4.69)
+                4.68)
             self.fig2.set_figwidth(10)
-            sns.barplot(x='Day', y='Close',
-                        data=self.data_for_plots, errorbar="sd", errcolor='limegreen')
+            self.first_figure_second_main = sns.barplot(x='Day', y='Close',
+                                                        data=self.data_for_plots, errorbar="sd", errcolor='grey', palette='Blues')
+            self.axes2.bar_label(
+                self.first_figure_second_main.containers[0], label_type='center', color='black')
             self.barplot_line = FigureCanvasTkAgg(
                 self.fig2, self.barplot_frame)
             self.barplot_line.get_tk_widget().grid(row=0, column=0, sticky="nsew")
@@ -184,9 +186,17 @@ class App(ctk.CTk):
             ##
             self.fig3, self.axes3 = plt.subplots()
             self.fig3.set_figheight(
-                4.69)
+                4.68)
             self.fig3.set_figwidth(10)
-            sns.regplot(data=self.data_for_plots, x='Close', y='Open',)
+            self.second_figure_second_main = sns.boxplot(
+                data=self.data_for_plots, x='Day', y='Open', palette="Greens")
+            # displaying median in text inside the boxplot
+            medians = self.data_for_plots.groupby(['Day'])['Open'].median()
+            # offset from median for display
+            vertical_offset = self.data_for_plots['Open'].median() * 0.05
+            for xtick in self.second_figure_second_main.get_xticks():
+                self.second_figure_second_main.text(xtick, medians[xtick] + vertical_offset, medians[xtick],
+                                                    horizontalalignment='center', size='small', color='w', weight='semibold')
             self.regplot_line = FigureCanvasTkAgg(
                 self.fig3, self.regplot_frame)
             self.regplot_line.get_tk_widget().grid(row=1, column=0, sticky="nsew")
@@ -200,10 +210,12 @@ class App(ctk.CTk):
             ##
             self.fig4, self.axes4 = plt.subplots()
             self.fig4.set_figheight(
-                4.69)
+                4.68)
             self.fig4.set_figwidth(10)
-            sns.barplot(x='Day', y='Close',
-                        data=self.data_for_plots, errorbar="sd", errcolor='limegreen')
+            self.third_figure_second_main = sns.barplot(x='Day', y='Close',
+                                                        data=self.data_for_plots, errorbar="sd", errcolor='grey', palette='Blues')
+            self.axes4.bar_label(
+                self.third_figure_second_main.containers[0], label_type='center', color='black')
             self.plot3_line = FigureCanvasTkAgg(
                 self.fig4, self.plot1_frame)
             self.plot3_line.get_tk_widget().grid(row=0, column=0, sticky="nsew")
@@ -217,9 +229,10 @@ class App(ctk.CTk):
             ##
             self.fig5, self.axes5 = plt.subplots()
             self.fig5.set_figheight(
-                4.69)
+                4.68)
             self.fig5.set_figwidth(10)
-            sns.regplot(data=self.data_for_plots, x='Close', y='Open',)
+            self.forth_figure_second_main = sns.regplot(
+                data=self.data_for_plots, x='Close', y='Open',)
             self.regplot_line = FigureCanvasTkAgg(
                 self.fig5, self.plot2_frame)
             self.regplot_line.get_tk_widget().grid(row=1, column=0, sticky="nsew")

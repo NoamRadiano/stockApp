@@ -15,4 +15,7 @@ from ui import App
 import time
 
 myApp = App()
+myApp.make_menubar()
+# myApp.make_login_page()
+myApp.make_main_page()
 myApp.mainloop()
