@@ -12,16 +12,21 @@
     "dotenv",
     "iterrows",
     "Iwant",
+    "keras",
     "marketsummery",
     "matplotlib",
     "outputsize",
     "padx",
     "pady",
+    "pyplot",
     "rapidapi",
     "relx",
+    "seaborn",
+    "sklearn",
     "stockname",
     "textvariable",
-    "TSLA"
+    "TSLA",
+    "yfinance"
   ],
   "python.analysis.typeCheckingMode": "basic"
 }

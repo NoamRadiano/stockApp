@@ -18,6 +18,7 @@ import datetime as dt
 import twelve_data
 import yfinance as yf
 import seaborn as sns
+import models
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -40,6 +41,9 @@ class App(ctk.CTk):
         self.data_market = []
         self.period_val_con = True
         self.inter_val_con = True
+        self.statiscs_page_count = 0
+        self.predictions_page_count = 0
+
         super().__init__(*args, **kwargs)
         self.title("StockApp")
         self.geometry(
@@ -93,6 +97,8 @@ class App(ctk.CTk):
         self.m1.add_command(label="Graphs", command=self.open_graph_label)
         self.m1.add_command(label="Statistics Graphs",
                             command=self.open_statistics_graphs_label)
+        self.m1.add_command(label="Predictions Graphs",
+                            command=self.open_predictions_graphs_label)
 
         # self.m2 = tk.Menu(self.menu_bar, tearoff=0, font=ctk.CTkFont(
         #     'Calibri', 22), )
@@ -107,6 +113,7 @@ class App(ctk.CTk):
         self.config(menu=self.menu_bar)
 
     def make_second_main_frame(self):
+        plt.close('all')
         # create second main frame
         self.grid_columnconfigure((0, 1), weight=1)  # type: ignore
         self.grid_rowconfigure((0, 1), weight=1)  # type: ignore
@@ -243,12 +250,174 @@ class App(ctk.CTk):
             self.axes5.set_ylabel('Open Price', fontdict={
                 'size': 12, 'weight': 'bold', })
 
+    def make_third_main_frame(self):
+        plt.close('all')
+        # create second main frame
+        self.grid_columnconfigure((0, 1), weight=1)  # type: ignore
+        self.grid_rowconfigure((0, 1), weight=1)  # type: ignore
+        self.third_main_frame = ctk.CTkFrame(
+            self, fg_color="#2E3033", bg_color="#2E3033")  # border_color="red", border_width=2
+        # configure grid layout (2x2)
+        self.third_main_frame.grid_columnconfigure((0, 1), weight=1)
+        self.third_main_frame.grid_rowconfigure(
+            (0, 1), weight=1)  # type: ignore
+        self.third_main_frame.grid(row=0, column=0, sticky="nsew")
+        self.data_label_for_predict = ctk.CTkLabel(
+            self.third_main_frame, text=f"{STOCK_SYMBOL} Predictions Graphs", font=ctk.CTkFont('Calibri', 35, 'bold'), anchor='center')
+        self.data_label_for_predict.grid_columnconfigure(0, weight=1)
+        self.data_label_for_predict.grid_rowconfigure(0, weight=1)
+        self.data_label_for_predict.grid(
+            row=0, column=0, sticky="nsew", columnspan=2)
+        ###
+        # creating first frame
+        self.first_frame_in_predictions_page = ctk.CTkFrame(
+            self.third_main_frame,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), fg_color="#2E3033", bg_color="#2E3033")  # border_color="pink", border_width=2
+        self.first_frame_in_predictions_page.grid(
+            row=1, column=0, pady=(20, 0), padx=(80, 0))
+        self.first_frame_in_predictions_page.grid_columnconfigure(
+            (0, 1, 2), weight=1)
+        self.first_frame_in_predictions_page.grid_rowconfigure(
+            (0, 1, 2, 3), weight=1)
+        self.first_quarter = ctk.CTkFrame(
+            self.first_frame_in_predictions_page,  width=(self.winfo_screenwidth() // 2), height=(self.winfo_screenheight() // 2), corner_radius=25, border_width=6)
+        self.first_quarter.grid(
+            row=0, column=0, sticky="nsew", pady=(0, 0), padx=(0, 0))
+        self.first_quarter.columnconfigure((0, 1, 2), weight=1)
+        self.first_quarter.rowconfigure((0, 1, 2, 3), weight=1)
+        self.second_quarter = ctk.CTkFrame(
+            self.first_frame_in_predictions_page,  width=(self.winfo_screenwidth() // 2), height=(self.winfo_screenheight() // 2))
+        self.second_quarter.grid(row=1, column=0)
+        ##
+        ##
+        ###
+        # creating second frame
+        self.second_frame_in_predictions_page = ctk.CTkFrame(
+            self.third_main_frame,  width=(self.winfo_screenwidth() // 2), height=self.winfo_screenheight(), fg_color="#2E3033", bg_color="#2E3033")  # border_color="pink", border_width=2
+        self.second_frame_in_predictions_page.grid(
+            row=1, column=1)
+        self.second_frame_in_predictions_page.grid_columnconfigure(0, weight=1)
+        self.second_frame_in_predictions_page.grid_rowconfigure(
+            (0, 1), weight=1)
+        self.third_quarter = ctk.CTkFrame(
+            self.second_frame_in_predictions_page,  width=(self.winfo_screenwidth() // 2), height=(self.winfo_screenheight() // 2))
+        self.third_quarter.grid(row=0, column=0)
+        self.fourth_quarter = ctk.CTkFrame(
+            self.second_frame_in_predictions_page,  width=(self.winfo_screenwidth() // 2), height=(self.winfo_screenheight() // 2))
+        self.fourth_quarter.grid(row=1, column=0)
+        # have to get dates and interval throw inputs and entries
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        self.start_date_predict = ctk.CTkLabel(
+            self.first_quarter, text="Start Date: ", font=ctk.CTkFont('Calibri', 25, 'bold'))
+        self.start_date_predict.grid(
+            row=0, column=0, padx=20, pady=(20, 10))
+        self.start_date_entry = ctk.CTkEntry(
+            self.first_quarter, width=170, height=35, placeholder_text="Start Date", font=ctk.CTkFont('Calibri', 21, 'bold'))
+        self.start_date_entry.grid(row=0, column=1, padx=20)
+        self.end_date_predict = ctk.CTkLabel(
+            self.first_quarter, text="End Date: ", font=ctk.CTkFont('Calibri', 25, 'bold'))
+        self.end_date_predict.grid(row=1, column=0, padx=20, pady=(20, 10))
+        self.end_date_entry = ctk.CTkEntry(
+            self.first_quarter, width=170, height=35, placeholder_text="End Date", font=ctk.CTkFont('Calibri', 21, 'bold'))
+        self.end_date_entry.grid(row=1, column=1, padx=20)
+        self.interval_for_predict = ctk.CTkLabel(
+            self.first_quarter, text="Interval Value: ", font=ctk.CTkFont('Calibri', 25, 'bold'))
+        self.interval_for_predict.grid(
+            row=2, column=0, padx=20, pady=(20, 10))
+        self.interval_predict_entry = ctk.CTkEntry(
+            self.first_quarter, width=170, height=35, placeholder_text="day,monday,friday..", font=ctk.CTkFont('Calibri', 21, 'bold'))
+        self.interval_predict_entry.grid(row=2, column=1, padx=20)
+        self.submit_predict_button = ctk.CTkButton(
+            self.first_quarter, text="Submit", height=37, width=170, font=ctk.CTkFont('Calibri', 25, 'bold'), command=lambda: self.calculate_predict_results_textbox(self.start_date_entry, self.end_date_entry, self.interval_predict_entry))
+        self.submit_predict_button.grid(
+            row=3, column=1, padx=20, pady=(10, 104))
+        self.bind(
+            '<Return>', lambda event: self.submit_predict_button.invoke())
+        self.predict_results_textbox = ctk.CTkTextbox(
+            self.first_quarter, font=ctk.CTkFont('Calibri', 20, 'bold'), width=120, height=280, corner_radius=25, border_width=6,)
+        self.predict_results_textbox.grid(row=0, column=2, padx=(
+            15, 15), pady=(30, 0), sticky="nsew", rowspan=3)
+        self.predict_results_textbox.columnconfigure(0, weight=1)
+        self.predict_results_textbox.rowconfigure(0, weight=1)
+        self.predict_results_textbox.configure(state="disabled")
+        #
+        #
+        ###
+        ####
+        # making predictions plots without data
+        ##
+        self.fig11, self.axes11 = plt.subplots()
+        self.fig11.set_figheight(4.68)
+        self.fig11.set_figwidth(9)
+        self.fig11.set_alpha(1)
+        self.fig11.set_facecolor(color="#2E3033")
+        self.second_plot_predict = FigureCanvasTkAgg(
+            self.fig11, self.second_quarter)
+        self.second_plot_predict.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+        self.second_plot_predict.get_tk_widget().grid_columnconfigure(0, weight=0)
+        self.second_plot_predict.get_tk_widget().grid_rowconfigure(1, weight=0)
+        ##
+        ##
+        self.fig12, self.axes12 = plt.subplots()
+        self.fig12.set_figheight(4.68)
+        self.fig12.set_figwidth(9)
+        self.fig12.set_alpha(1)
+        self.fig12.set_facecolor(color="#2E3033")
+        self.third_plot_predict = FigureCanvasTkAgg(
+            self.fig12, self.third_quarter)
+        self.third_plot_predict.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+        self.third_plot_predict.get_tk_widget().grid_columnconfigure(0, weight=0)
+        self.third_plot_predict.get_tk_widget().grid_rowconfigure(0, weight=0)
+        ##
+        ##
+        self.fig13, self.axes13 = plt.subplots()
+        self.fig13.set_figheight(4.68)
+        self.fig13.set_figwidth(9)
+        self.fig13.set_alpha(1)
+        self.fig13.set_facecolor(color="#2E3033")
+        self.fourth_plot_predict = FigureCanvasTkAgg(
+            self.fig13, self.fourth_quarter)
+        self.fourth_plot_predict.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+        self.fourth_plot_predict.get_tk_widget().grid_columnconfigure(0, weight=0)
+        self.fourth_plot_predict.get_tk_widget().grid_rowconfigure(1, weight=0)
+        ##
+        ##
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+        #######################
+
     def open_statistics_graphs_label(self):
+        self.statiscs_page_count = 1
         self.main_frame.grid_forget()
+        if (self.predictions_page_count == 1):
+            self.third_main_frame.grid_forget()
         self.make_second_main_frame()
 
+    def open_predictions_graphs_label(self):
+        self.predictions_page_count = 1
+        self.main_frame.grid_forget()
+        if (self.statiscs_page_count == 1):
+            self.second_main_frame.grid_forget()
+        self.make_third_main_frame()
+
     def open_graph_label(self):
-        self.second_main_frame.grid_forget()
+        if (self.statiscs_page_count == 1):
+            self.second_main_frame.grid_forget()
+        if (self.predictions_page_count == 1):
+            self.third_main_frame.grid_forget()
         self.main_frame.grid(row=0, column=0)
 
     def get_interval_value_event(self, interval_value: str):
@@ -259,6 +428,83 @@ class App(ctk.CTk):
 
     def get_result_function_event(self, result_function: str):
         self.result_function = result_function
+
+    def calculate_predict_results_textbox(self, start_date_entry, end_date_entry, interval_entry):
+        start_date = start_date_entry.get()
+        end_date = end_date_entry.get()
+        interval = interval_entry.get()
+        self.predict_results_textbox.delete('1.0', 'end')
+        if (STOCK_SYMBOL != ""):
+            self.model = models.makePredictionModel(
+                stock_symbol=STOCK_SYMBOL, start_date=start_date, end_date=end_date, interval=interval)
+            self.fig11, self.axes11 = plt.subplots()
+            self.fig11.set_figheight(
+                4.68)
+            self.fig11.set_figwidth(10)
+            plt.plot(self.model.dates_val, self.model.val_predictions)
+            plt.plot(self.model.dates_val, self.model.y_val)
+            plt.legend(['Validation Predictions', 'Validation Observations'])
+            self.second_plot_predict = FigureCanvasTkAgg(
+                self.fig11, self.second_quarter)
+            self.second_plot_predict.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+            self.second_plot_predict.get_tk_widget().grid_columnconfigure(0, weight=0)
+            self.second_plot_predict.get_tk_widget().grid_rowconfigure(1, weight=0)
+            self.axes11.set_xlabel(
+                'Dates', fontdict={'size': 12, 'weight': 'bold', })
+            self.axes11.set_ylabel('Close Price', fontdict={
+                'size': 12, 'weight': 'bold', })
+            ##
+            self.fig12, self.axes12 = plt.subplots()
+            self.fig12.set_figheight(
+                4.68)
+            self.fig12.set_figwidth(10)
+            plt.plot(self.model.dates_test, self.model.test_predictions)
+            plt.plot(self.model.dates_test, self.model.y_test)
+            plt.legend(['Testing Predictions', 'Testing Observations'])
+            self.third_plot_predict = FigureCanvasTkAgg(
+                self.fig12, self.third_quarter)
+            self.third_plot_predict.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+            self.third_plot_predict.get_tk_widget().grid_columnconfigure(0, weight=0)
+            self.third_plot_predict.get_tk_widget().grid_rowconfigure(0, weight=0)
+            self.axes12.set_xlabel(
+                'Dates', fontdict={'size': 12, 'weight': 'bold', })
+            self.axes12.set_ylabel('Close Price', fontdict={
+                'size': 12, 'weight': 'bold', })
+            ##
+            self.fig13, self.axes13 = plt.subplots()
+            self.fig13.set_figheight(
+                4.68)
+            self.fig13.set_figwidth(10)
+            plt.plot(self.model.dates_train, self.model.train_predictions)
+            plt.plot(self.model.dates_train, self.model.y_train)
+            plt.plot(self.model.dates_val, self.model.val_predictions)
+            plt.plot(self.model.dates_val, self.model.y_val)
+            plt.plot(self.model.dates_test, self.model.test_predictions)
+            plt.plot(self.model.dates_test, self.model.y_test)
+            plt.legend(['Training Predictions',
+                        'Training Observations',
+                        'Validation Predictions',
+                        'Validation Observations',
+                        'Testing Predictions',
+                        'Testing Observations'])
+            self.fourth_plot_predict = FigureCanvasTkAgg(
+                self.fig13, self.fourth_quarter)
+            self.fourth_plot_predict.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+            self.fourth_plot_predict.get_tk_widget().grid_columnconfigure(0, weight=0)
+            self.fourth_plot_predict.get_tk_widget().grid_rowconfigure(1, weight=0)
+            self.axes13.set_xlabel(
+                'Dates', fontdict={'size': 12, 'weight': 'bold', })
+            self.axes13.set_ylabel('Open Price', fontdict={
+                'size': 12, 'weight': 'bold', })
+            self.predict_results_textbox.configure(state="normal")
+            self.predict_results_textbox.insert(
+                ctk.INSERT, text=f"Prediction of the next interval is: {round(self.model.prediction,4)}")
+            self.predict_results_textbox.configure(state="disabled")
+            self.third_main_frame.configure(bg_color='black', fg_color='black')
+            self.first_frame_in_predictions_page.configure(
+                bg_color='black', fg_color='black')
+            self.second_frame_in_predictions_page.configure(
+                bg_color='black', fg_color='black')
 
     def print_results_and_build_graph_and_ibframe(self, entry):
         self.results_textbox.configure(state="normal")
